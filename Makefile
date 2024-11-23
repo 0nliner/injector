@@ -7,6 +7,8 @@ bdist_wheel:
 	python setup.py bdist_wheel
 
 upload_build:
-	python -m twine upload --repository pypi dist/* --verbose
+	@read -p "Enter user token\n" token; \
+	echo $$token; \
+	python -m twine upload --repository pypi dist/* -u __token__ -p $$token --verbose
 
 .PHONY : sdist bdist_wheel

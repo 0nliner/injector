@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from archtool.global_types import AppModules, DEPENDENCY_KEY
 
 
-class DependecyInjectorInterface(ABC):
+class DependencyInjectorInterface(ABC):
     @abstractmethod
     def __init__(self,
                  modules_list: AppModules):

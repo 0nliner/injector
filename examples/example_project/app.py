@@ -3,7 +3,7 @@ import pathlib
 
 sys.path.append(pathlib.Path.cwd().as_posix())
 
-from archtool.dependecy_injector import DependecyInjector
+from archtool.dependency_injector import DependencyInjector
 from archtool.layers.default_layers import DomainLayer
 from archtool.global_types import AppModule
 from test_module_1.interfaces import TestRepo1Interface
@@ -15,7 +15,7 @@ modules_list = [
     AppModule("test_module_2")
 ]
 
-injector = DependecyInjector(modules_list=modules_list)
+injector = DependencyInjector(modules_list=modules_list)
 
 if __name__ == "__main__":
     injector.inject()

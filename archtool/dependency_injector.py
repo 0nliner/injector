@@ -1,11 +1,12 @@
+import typing as t
 from typing import List, Dict
 import logging
 
-from .exceptions import (DependecyDuplicate,
-                         DependecyDoesNotRegistred
+from .exceptions import (DependencyDuplicate,
+                         DependencyDoesNotRegistred
                          )
 
-from .interfaces import DependecyInjectorInterface
+from .interfaces import DependencyInjectorInterface
 
 from archtool.layers.default_layers import default_layers
 from archtool.layers.di_basic_layer import Layer
@@ -29,7 +30,10 @@ logging.basicConfig(
     level=logging.DEBUG)
 
 
-class DependecyInjector(DependecyInjectorInterface):
+T = t.TypeVar("T")
+
+
+class DependencyInjector(DependencyInjectorInterface):
     def __init__(self,
                  modules_list: AppModules,
                  layers: List[Layer] = None):
@@ -46,6 +50,7 @@ class DependecyInjector(DependecyInjectorInterface):
             initialized_layer = layer()
             self._layers.append(initialized_layer)
         self.layers = self._layers
+        self._allowed_to_nested_injection: Dict[DEPENDENCY_KEY, bool] = {}
 
     def inject(self):
         logging.info('running injector...')
@@ -68,13 +73,16 @@ class DependecyInjector(DependecyInjectorInterface):
                     for dep_key, dep_class in component_group_deps.items():
                         # инициализируем классы, подставляем как зависимость
                         dep_instance = dep_class()
-                        self._reg_dependecy(key=dep_key,
+                        self._reg_dependency(key=dep_key,
                                             value=dep_instance)
 
         # инжектим
         line_sep = "\n\t"
-        logging.debug(f'dependencies:\n\t{line_sep.join(self._dependencies)}')
+        # logging.debug(f'dependencies:\n\t{line_sep.join(f"{key}: {val}" for key, val in self._dependencies.items() if str(key) and str(val))}')
         for dep_interface, dep_instance in self._dependencies.items():
+            is_allowed_to_nested_injection = self._allowed_to_nested_injection[dep_interface]
+            if not is_allowed_to_nested_injection:
+                continue
             self._inject_dependencies(container=dep_instance)
         logging.info('injection ended')
 
@@ -99,30 +107,37 @@ class DependecyInjector(DependecyInjectorInterface):
                 dependency_to_inject = self._get_dependency(key=dep.asked)
                 setattr(container, dep.name, dependency_to_inject)
             except KeyError:
-                raise DependecyDoesNotRegistred(("Данная зависимость не",
+                raise DependencyDoesNotRegistred(("Данная зависимость не",
                                                  " зарегистрирована в",
                                                  " инжекторе"))
 
-    def _reg_dependecy(self,
+    def _reg_dependency(self,
                        key: DEPENDENCY_KEY,
-                       value: object) -> None:
+                       value: object,
+                       nested_injections_allowed: bool = True,
+                       use_serialization_function: bool = True
+                       ) -> None:
         """
         Проверяет существует ли зависимость.
-        Если зависимости уже существует - возвращает ошибку DependecyDuplicate
+        Если зависимости уже существует - возвращает ошибку DependencyDuplicate
 
         ARGS:
         key - ключ зависимости
         value - объект зависимости
         """
-        serialized_key = serialize_dep_key(key)
+        if use_serialization_function:
+            serialized_key = serialize_dep_key(key)
+        else:
+            serialized_key = key
+        self._allowed_to_nested_injection.update({serialized_key: nested_injections_allowed})
         if serialized_key in self._dependencies:
-            raise DependecyDuplicate(("Интерфейс зависимости должен быть",
+            raise DependencyDuplicate(("Интерфейс зависимости должен быть",
                                       " уникальным.\n Зависимость с ключём",
                                       f" {key} уже зарегистрирована"))
         self._dependencies[serialized_key] = value
 
     def _get_dependency(self,
-                        key: str) -> object:
+                        key: t.Union[str, T]) -> t.Union[object, T]:
         try:
             instance = self._dependencies[key]
             return instance
@@ -130,11 +145,11 @@ class DependecyInjector(DependecyInjectorInterface):
             serialized_deps =\
                   "\n\t".join(f"{key}: {item}"
                               for key, item in self._dependencies.items())
-            raise DependecyDoesNotRegistred((
+            raise DependencyDoesNotRegistred((
                 f'Зависимость не найдена {key}\n'
                 f'Dependencies:\n{serialized_deps}'))
 
     def get_dependency(self,
-                       key: str) -> object:
+                       key: t.Union[str, T]) -> t.Union[object, T]:
         serialized_key = serialize_dep_key(key)
         return self._get_dependency(serialized_key)

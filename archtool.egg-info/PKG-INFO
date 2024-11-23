@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: archtool
+Version: 0.2.0
+Home-page: https://github.com/0nliner/archtool
+Author: Aleksandr Chudaikin
+Author-email: aleksandrchudaikindev@gmail.com
+License: MIT
+Keywords: ''
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.8

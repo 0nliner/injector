@@ -22,7 +22,7 @@ app
 Файл app.py в корне проекта
 
 ```python
-from archtool.dependecy_injector import DependecyInjector
+from archtool.dependency_injector import DependencyInjector
 from archtool.layers.default_layers import DomainLayer
 from archtool.global_types import AppModule
 
@@ -32,7 +32,7 @@ modules_list = [
 ]
 
 
-injector = DependecyInjector(modules_list=modules_list)
+injector = DependencyInjector(modules_list=modules_list)
 
 
 if __name__ == "__main__":
